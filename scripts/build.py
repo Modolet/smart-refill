@@ -82,7 +82,7 @@ def main():
         "\n".join('"' + a.replace("\\", "\\\\").replace('"', '\\"') + '"' for a in args)
     )
     subprocess.run(["javac", "@" + str(argfile)], check=True)
-    out = BUILD / "libs/smartrefill-neoforge-1.21.1-0.1.1.jar"
+    out = BUILD / "libs/smartrefill-neoforge-1.21.1-0.1.2.jar"
     out.parent.mkdir(exist_ok=True)
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as jar:
         for base in [classes, ROOT / "src/main/resources"]:

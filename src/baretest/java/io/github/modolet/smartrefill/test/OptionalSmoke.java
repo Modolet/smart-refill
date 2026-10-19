@@ -1,7 +1,7 @@
 /**
- * @file OptionalSmoke.java @brief Runtime absence test without Accessories, Tom, Curios, or
- *     ClientSort. @author XiangX (Modolet) <52348766+Modolet@users.noreply.github.com> @date
- *     2026-10-19
+ * @file OptionalSmoke.java @brief Runtime dependency-absence probes, with an optional Tom-only
+ *     profile; no Curios or ClientSort. @author XiangX (Modolet)
+ *     <52348766+Modolet@users.noreply.github.com> @date 2026-10-19
  */
 package io.github.modolet.smartrefill.test;
 
@@ -77,7 +77,8 @@ public final class OptionalSmoke {
             passed =
                 clientPassed
                     && !ModList.get().isLoaded("accessories")
-                    && !ModList.get().isLoaded("toms_storage")
+                    && ModList.get().isLoaded("toms_storage")
+                        == Boolean.getBoolean("smartrefill.test.tomOnly")
                     && !ModList.get().isLoaded("clientsort")
                     && p.getMainHandItem().getCount() == 8
                     && p.getInventory().getItem(9).isEmpty();

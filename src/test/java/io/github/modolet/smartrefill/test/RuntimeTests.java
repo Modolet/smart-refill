@@ -39,6 +39,7 @@ public final class RuntimeTests {
   private boolean started, done;
   private volatile boolean reopenRequested, reopened;
   private int ticks;
+  private final AccessoryTerminalProbes accessoryTerminals = new AccessoryTerminalProbes();
   private int failures, passes;
   private final BlockPos base = new BlockPos(8, 200, 8);
   private final BlockPos terminalPos = new BlockPos(6, 200, 4);
@@ -571,7 +572,17 @@ public final class RuntimeTests {
         check("network_actor_alive", p.isAlive() && !p.isRemoved());
       }
       if (ticks >= 200 && ticks <= 209) networkSuite(p, ticks);
-      if (ticks == 210) {
+      if (ticks >= 210 && ticks <= 233)
+        accessoryTerminals.run(
+            p,
+            terminalPos,
+            chestPos,
+            ticks - 210,
+            this::check,
+            this::reset,
+            this::place,
+            this::aimAtTerminal);
+      if (ticks == 240) {
         ExtraProbes.run(p, terminalPos, chestPos, this::check);
         setup(p, Items.STONE, 8);
         place(p);
@@ -589,7 +600,7 @@ public final class RuntimeTests {
             "dimension_return_no_phantom_refill",
             p.getInventory().getItem(0).isEmpty() && p.getInventory().getItem(9).getCount() == 8);
       }
-      if (ticks == 220) {
+      if (ticks == 250) {
         setup(p, Items.STONE, 8);
         place(p);
         p.serverLevel()
@@ -617,7 +628,7 @@ public final class RuntimeTests {
                 && respawned.getInventory().getItem(0).isEmpty()
                 && respawned.getInventory().getItem(9).getCount() == 8);
       }
-      if (ticks == 260) {
+      if (ticks == 290) {
         setup(p, Items.STONE, 8);
         place(p);
         p.connection.disconnect(Component.literal("SmartRefill isolated reconnect test"));

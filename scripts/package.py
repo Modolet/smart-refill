@@ -30,7 +30,7 @@ def zip_files(output, files):
 
 
 def main():
-    binary = ROOT / "build/libs/smartrefill-neoforge-1.21.1-0.1.1.jar"
+    binary = ROOT / "build/libs/smartrefill-neoforge-1.21.1-0.1.2.jar"
     expected = binary.with_suffix(".jar.sha256").read_text().split()[0]
     if digest(binary) != expected:
         raise RuntimeError("JAR checksum mismatch")
@@ -39,9 +39,21 @@ def main():
     match = re.search(r"RESULT passes=(\d+) failures=0", full.read_text())
     if match is None or "FAIL " in full.read_text():
         raise RuntimeError("Full-pack regression has not passed")
+    accessory = [
+        line
+        for line in full.read_text().splitlines()
+        if line.startswith("PASS accessory_terminal_")
+    ]
+    if len(accessory) != 28:
+        raise RuntimeError(
+            "Dedicated accessory-terminal regression has not passed all 28 checks"
+        )
     if bare.read_text().strip() != "OPTIONAL_ABSENCE PASS":
         raise RuntimeError("Optional-dependency absence runtime test has not passed")
-    for profile in ["isolated", "isolated-bare"]:
+    tom_only = ROOT / "build/isolated-tom-only/client/smartrefill-tests.log"
+    if tom_only.read_text().strip() != "OPTIONAL_ABSENCE PASS":
+        raise RuntimeError("Tom-only runtime without Accessories has not passed")
+    for profile in ["isolated", "isolated-bare", "isolated-tom-only"]:
         tested = ROOT / "build" / profile / "client/mods" / binary.name
         if digest(tested) != expected:
             raise RuntimeError("Tested and delivered JARs differ")
@@ -59,6 +71,10 @@ def main():
     shutil.copy2(ROOT / "TEST-RESULTS.md", DELIVERY / "TEST-RESULTS.md")
     shutil.copy2(full, DELIVERY / "bmc5-full-pack.log")
     shutil.copy2(bare, DELIVERY / "optional-absence.log")
+    shutil.copy2(tom_only, DELIVERY / "tom-only-without-accessories.log")
+    (DELIVERY / "accessory-terminals.log").write_text(
+        "\n".join(accessory) + "\nRESULT passes=28 failures=0\n"
+    )
     shutil.copy2(ROOT / "build/build-inputs.json", DELIVERY / "build-inputs.json")
     shutil.copy2(
         ROOT / "build/isolated/client/config/smartrefill-common.toml",
@@ -70,6 +86,8 @@ def main():
         "jar_sha256": expected,
         "full_pack_automatic_checks_passed": int(match.group(1)),
         "optional_absence_runtime": "PASS",
+        "tom_without_accessories_runtime": "PASS",
+        "accessory_terminal_automatic_checks_passed": len(accessory),
         "installer_fixture_tests": 3,
         "real_instance_replaced": False,
         "human_ui_acceptance": False,
@@ -110,15 +128,15 @@ def main():
         if file.name == ".envrc":
             continue
         sources.append(("smartrefill/" + relative.as_posix(), file))
-    zip_files(DELIVERY / "smartrefill-0.1.1-sources.zip", sources)
+    zip_files(DELIVERY / "smartrefill-0.1.2-sources.zip", sources)
     sums = "".join(
         f"{digest(file)}  {file.name}\n"
         for file in sorted(DELIVERY.iterdir())
         if file.is_file()
-        and file.name not in ["SHA256SUMS", "smartrefill-0.1.1-delivery.zip"]
+        and file.name not in ["SHA256SUMS", "smartrefill-0.1.2-delivery.zip"]
     )
     (DELIVERY / "SHA256SUMS").write_text(sums)
-    bundle = DELIVERY / "smartrefill-0.1.1-delivery.zip"
+    bundle = DELIVERY / "smartrefill-0.1.2-delivery.zip"
     zip_files(
         bundle,
         [

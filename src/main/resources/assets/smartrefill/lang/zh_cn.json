@@ -16,10 +16,12 @@
   "smartrefill.configuration.accessoryTotemRefill": "饰品图腾补货",
   "smartrefill.configuration.accessoryTotemRefill.tooltip": "图腾实际消耗后补回原 Accessories 功能槽；需要 Accessorify 等兼容图腾使用模组。",
   "smartrefill.configuration.wirelessRefill": "Tom 无线补货",
-  "smartrefill.configuration.wirelessRefill.tooltip": "允许使用普通物品栏或副手的终端；普通终端需要视线，不支持饰品栏携带终端。",
+  "smartrefill.configuration.wirelessRefill.tooltip": "允许从 Tom 无线网络取货；普通终端需要视线。",
   "smartrefill.configuration.sourcePriority": "来源优先级",
-  "smartrefill.configuration.sourcePriority.tooltip": "按物品栏槽号选首个可访问网络，最后检查副手；该网络缺货时不切换其他网络。",
+  "smartrefill.configuration.sourcePriority.tooltip": "按普通库存、副手、Accessories 槽名及槽号选首个可访问网络；缺货时不切换其他网络。",
   "smartrefill.configuration.sourcePriority.inventory_first": "库存优先，无线补足",
   "smartrefill.configuration.sourcePriority.wireless_first": "无线优先，库存补足",
-  "smartrefill.configuration.sourcePriority.inventory_only": "仅玩家库存"
+  "smartrefill.configuration.sourcePriority.inventory_only": "仅玩家库存",
+  "smartrefill.configuration.accessoryWirelessRefill": "饰品栏无线终端",
+  "smartrefill.configuration.accessoryWirelessRefill.tooltip": "也使用 Accessories 顶层合法功能槽中的终端；不读取外观槽或嵌套饰品，仍遵守 Tom 访问规则。"
 }

@@ -29,6 +29,7 @@ public final class ClientChecks {
             "totemRefill",
             "accessoryTotemRefill",
             "wirelessRefill",
+            "accessoryWirelessRefill",
             "sourcePriority")) {
       translated(en, zh, "smartrefill.configuration." + name);
       translated(en, zh, "smartrefill.configuration." + name + ".tooltip");

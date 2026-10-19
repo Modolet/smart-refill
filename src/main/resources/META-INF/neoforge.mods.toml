@@ -4,7 +4,7 @@ license="MIT"
 issueTrackerURL="https://github.com/Modolet/smart-refill/issues"
 [[mods]]
 modId="smartrefill"
-version="0.1.1"
+version="0.1.2"
 displayName="Smart Refill"
 authors="XiangX (Modolet)"
 logoFile="icon.png"

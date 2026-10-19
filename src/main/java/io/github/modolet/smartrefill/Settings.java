@@ -19,7 +19,8 @@ public final class Settings {
       ARMOR,
       TOTEMS,
       ACCESSORIES,
-      WIRELESS;
+      WIRELESS,
+      ACCESSORY_WIRELESS;
   public static final ModConfigSpec.EnumValue<Priority> SOURCE_PRIORITY;
 
   public enum Priority implements TranslatableEnum {
@@ -72,14 +73,19 @@ public final class Settings {
     WIRELESS =
         b.translation("smartrefill.configuration.wirelessRefill")
             .comment(
-                "Allow terminals in normal inventory or offhand. Ordinary terminals require line of"
-                    + " sight; accessory-carried terminals are unsupported.")
+                "Allow Tom wireless network sources. Ordinary terminals require line of sight.")
             .define("wirelessRefill", true);
+    ACCESSORY_WIRELESS =
+        b.translation("smartrefill.configuration.accessoryWirelessRefill")
+            .comment(
+                "Also use valid top-level Accessories functional slots; cosmetic and nested slots"
+                    + " are excluded. Tom access rules still apply.")
+            .define("accessoryWirelessRefill", true);
     SOURCE_PRIORITY =
         b.translation("smartrefill.configuration.sourcePriority")
             .comment(
-                "Select the first accessible network in inventory order, offhand last. A shortage"
-                    + " never switches networks.")
+                "Select the first accessible network: inventory, offhand, then Accessories slot"
+                    + " name/index. A shortage never switches networks.")
             .defineEnum("sourcePriority", Priority.INVENTORY_FIRST);
     SPEC = b.build();
   }

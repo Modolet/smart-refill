@@ -18,9 +18,9 @@ INSTANCE = Path(
     )
 )
 PROFILE = os.environ.get("SMARTREFILL_TEST_PROFILE", "full")
-if PROFILE not in ["full", "bare"]:
-    raise ValueError("SMARTREFILL_TEST_PROFILE must be full or bare")
-DEST = ROOT / ("build/isolated-bare" if PROFILE == "bare" else "build/isolated")
+if PROFILE not in ["full", "bare", "tom-only"]:
+    raise ValueError("SMARTREFILL_TEST_PROFILE must be full, bare, or tom-only")
+DEST = ROOT / ("build/isolated" if PROFILE == "full" else "build/isolated-" + PROFILE)
 
 
 def main():
@@ -32,7 +32,9 @@ def main():
     (client / "mods").mkdir(parents=True, exist_ok=True)
     excluded = []
     for jar in (INSTANCE / "mods").glob("*.jar"):
-        if PROFILE == "bare":
+        if PROFILE != "full" and not (
+            PROFILE == "tom-only" and jar.name.startswith("toms_storage-")
+        ):
             excluded.append(jar.name)
             continue
         if any(
@@ -52,7 +54,7 @@ def main():
         "natives",
         "vaultpatcher",
     ]:
-        if PROFILE == "bare" and name != "natives":
+        if PROFILE != "full" and name != "natives":
             continue
         if (INSTANCE / name).is_dir():
             shutil.copytree(INSTANCE / name, client / name, dirs_exist_ok=True)
@@ -66,10 +68,12 @@ def main():
         config["disableWarnings"]["disableWarnings"] = True
         memory.write_text(json.dumps(config, indent=2))
     shutil.copy2(
-        ROOT / "build/libs/smartrefill-neoforge-1.21.1-0.1.1.jar", client / "mods"
+        ROOT / "build/libs/smartrefill-neoforge-1.21.1-0.1.2.jar", client / "mods"
     )
     classes = ROOT / (
-        "build/bare-test-classes" if PROFILE == "bare" else "build/test-classes"
+        "build/test-classes"
+        if PROFILE == "full"
+        else "build/" + PROFILE + "-test-classes"
     )
     classes.mkdir(exist_ok=True)
     cp = (ROOT / "build/classpath.txt").read_text() + ":" + str(ROOT / "build/classes")
@@ -90,7 +94,7 @@ def main():
                 str,
                 (
                     ROOT
-                    / ("src/baretest/java" if PROFILE == "bare" else "src/test/java")
+                    / ("src/test/java" if PROFILE == "full" else "src/baretest/java")
                 ).rglob("*.java"),
             ),
         ],
@@ -173,6 +177,7 @@ def main():
         shutil.which("java"),
         "-Xms1G",
         "-Xmx4G",
+        "-Dsmartrefill.test.tomOnly=" + str(PROFILE == "tom-only").lower(),
         "-Duser.home=" + str(DEST / "home"),
         "-Dorg.lwjgl.glfw.libname=/nix/store/jl7xfv2n23n8w6grzp64sr2k39y2xgh1-glfw-minecraft-3.4/lib/libglfw.so",
         *resolve(version["arguments"]["jvm"]),

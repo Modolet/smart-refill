@@ -12,9 +12,10 @@ Server-side refill after genuine consumption, with optional Accessories totems a
 - Refill blocks and consumables after genuine use, and replace broken tools or armor. Manually removing, moving, swapping, dropping, or sorting items does not create a consumption event. Manual edits cancel pending refills; changing hotbar selection cannot redirect an old refill into the new slot.
 - Refill one `minecraft:totem_of_undying` into its original Accessories functional slot after actual consumption. Tested with Accessorify's FAKE_HAND path; requires Accessories and a compatible mod that actually consumes accessory totems. This is not a Curios offhand workaround. Manual unequipping never triggers refill; occupied slots are not overwritten.
 - Refill at the player's next server `PlayerTickEvent.Post`, normally the same tick or the next. One pending event per target, no retry polling. Consecutive lethal hits before refill can still kill the player: **no unlimited death protection**.
-- Prefer normal inventory, then extract the missing amount from the first accessible Tom wireless network. Works with the storage GUI closed. Multiple terminals use inventory slot order, offhand last; a shortage in the chosen network does not switch to another network.
+- Prefer normal inventory, then extract the missing amount from the first accessible Tom wireless network. Works with the storage GUI closed. Multiple terminals use inventory slot order, offhand next, then Accessories slot name and index; a shortage in the chosen network does not switch to another network.
 - **Ordinary wireless terminals require line of sight** to a compatible storage terminal. They have no binding. Advanced terminals use their existing binding. Tom's original distance, dimension, beacon, access, filtering, and loaded-chunk checks remain authoritative. No forced chunk loading.
-- **Accessory-carried wireless terminals are not supported.** Carry terminals in normal inventory or offhand. Accessory totem targets and accessory-carried terminal sources are separate features.
+- **Accessory-carried ordinary and advanced wireless terminals are supported** in valid top-level Accessories functional slots. Cosmetic slots and nested accessories are excluded. Both optional terminal items are added to the Accessories belt tag; no new slots are created. Terminals are read in place, never moved into player inventory or consumed. The separate `accessoryWirelessRefill` toggle controls this source.
+- Source discovery uses the current Accessories API directly. Tom's unchanged `canInteractWith(player, false)` remains the permission gate. In the tested BMC5 pack, Tom recognizes worn terminals through its existing Curios/Accessories compatibility layer. On another pack, missing native extra-slot recognition can limit access to Tom's default nearby interaction range; Smart Refill does not bypass that check or promise extended range without the native integration. Tom can choose a different first carried terminal to determine range, so carrying a lower-range terminal can restrict another terminal's network.
 - Exact item and data-component matching protects names, potions, enchantments, and container contents. Tool/armor replacements ignore only `minecraft:damage`, require remaining durability, and otherwise match all components. Inventory uses slot order; network tool candidates prefer less damage.
 - Extraction counts come from Tom's actual returned stacks, never cached quantities. Partial stock produces a partial refill. Changed/rejecting targets return real items to the source; unreturnable network leftovers go to player inventory, then drop at the player if full. Drops retain normal despawn/environmental risks. Bowls or bottles left in the target are never overwritten.
 - No new blocks, world format changes, persistent pending queues, arbitrary client refill requests, or per-tick warehouse scans. Login/respawn/dimension/disconnect events clear pending records.
@@ -53,9 +54,10 @@ Exit the game before replacing mods. Back up the old JAR and refill configuratio
 | `totemRefill` | `true` | Consumed hand totem |
 | `accessoryTotemRefill` | `true` | Consumed Accessories functional-slot totem |
 | `wirelessRefill` | `true` | Tom wireless sources |
+| `accessoryWirelessRefill` | `true` | Also inspect valid Accessories functional slots; requires wirelessRefill |
 | `sourcePriority` | `INVENTORY_FIRST` | `INVENTORY_FIRST`, `WIRELESS_FIRST`, or `INVENTORY_ONLY` |
 
-中文配置说明：总开关为 `enabled`；其余开关分别控制使用耗尽、食物饮品、工具、盔甲、主副手图腾、饰品图腾及无线来源。`INVENTORY_FIRST` 为库存优先、无线补足；`WIRELESS_FIRST` 为无线优先、库存补足；`INVENTORY_ONLY` 仅从玩家普通库存取货。普通终端必须看向有效终端，饰品栏携带终端暂不支持。多人以服务端配置为准。
+中文配置说明：总开关为 `enabled`；其余开关分别控制使用耗尽、食物饮品、工具、盔甲、主副手图腾、饰品图腾及无线来源。`INVENTORY_FIRST` 为库存优先、无线补足；`WIRELESS_FIRST` 为无线优先、库存补足；`INVENTORY_ONLY` 仅从玩家普通库存取货。普通终端必须看向有效终端；`accessoryWirelessRefill` 控制饰品栏终端来源，支持合法功能槽，不读取外观槽或嵌套饰品。多人以服务端配置为准。
 
 ## Build from source
 
@@ -65,7 +67,7 @@ This offline build uses Java 21 and the installed, patched Mojmap Minecraft/NeoF
 nix-shell shell.nix --run 'python3 scripts/build.py'
 ```
 
-Output: `build/libs/smartrefill-neoforge-1.21.1-0.1.1.jar` and `.jar.sha256`. Input hashes are recorded in `build/build-inputs.json`; ZIP timestamps are fixed for reproducibility.
+Output: `build/libs/smartrefill-neoforge-1.21.1-0.1.2.jar` and `.jar.sha256`. Input hashes are recorded in `build/build-inputs.json`; ZIP timestamps are fixed for reproducibility.
 
 ```sh
 nix-shell shell.nix --run 'google-java-format --dry-run --set-exit-if-changed $(find src -name "*.java") && ruff check scripts && ruff format --check scripts && python3 scripts/test_install.py'
@@ -76,9 +78,10 @@ nix-shell shell.nix --run 'google-java-format --dry-run --set-exit-if-changed $(
 ```sh
 nix-shell shell.nix --run 'python3 scripts/prepare_test.py && python3 scripts/run_test.py'
 nix-shell shell.nix --run 'SMARTREFILL_TEST_PROFILE=bare python3 scripts/prepare_test.py && SMARTREFILL_TEST_PROFILE=bare python3 scripts/run_test.py'
+nix-shell shell.nix --run 'SMARTREFILL_TEST_PROFILE=tom-only python3 scripts/prepare_test.py && SMARTREFILL_TEST_PROFILE=tom-only python3 scripts/run_test.py'
 ```
 
-The scripts create `build/isolated` and `build/isolated-bare`, with new disposable worlds, an offline identity, private Xvfb display, and software rendering. They never copy real saves, accounts, credentials, or server lists. Full-pack tests exclude legacy StackRefill, Numen, DebugBridge, and CrashAssistant; bare tests exclude all external mods. Test plugins are not packaged into the production JAR. Existing isolated worlds are not overwritten: rename earlier output before repeating.
+The scripts create `build/isolated`, `build/isolated-bare`, and `build/isolated-tom-only`, with new disposable worlds, an offline identity, private Xvfb display, and software rendering. They never copy real saves, accounts, credentials, or server lists. Full-pack tests exclude legacy StackRefill, Numen, DebugBridge, and CrashAssistant; bare tests exclude all external mods. The Tom-only profile keeps only Tom and verifies the new source-discovery path stays safe without Accessories, Curios, or their compatibility layer. A dedicated 28-check `AccessoryTerminalProbes` suite covers worn terminals separately from the baseline scenarios; its results are also extracted into `accessory-terminals.log` in the local delivery bundle. Test plugins are not packaged into the production JAR. Existing isolated worlds are not overwritten: rename earlier output before repeating.
 
 The launcher scripts currently contain host-specific Nix GLFW/Mesa paths and require Xvfb on `PATH`; adjust these for another machine. They stop only their own self-exiting test client and private display. [TEST-RESULTS.md](TEST-RESULTS.md) separates compilation, automated real-game probes, human input acceptance, and dedicated multiplayer.
 

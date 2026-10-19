@@ -7,6 +7,9 @@ package io.github.modolet.smartrefill;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.slot.SlotReference;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -50,6 +53,25 @@ public final class AccessoryBridge {
       }
     }
     return null;
+  }
+
+  public static List<ItemStack> carried(ServerPlayer player, Predicate<ItemStack> wanted) {
+    var capability = AccessoriesCapability.getOptionally(player).orElse(null);
+    if (capability == null) return List.of();
+    List<ItemStack> found = new ArrayList<>();
+    // Read live top-level functional slots only. Never use cosmetic/nested/cache views.
+    for (String name : capability.getContainers().keySet().stream().sorted().toList()) {
+      var container = capability.getContainers().get(name);
+      if (container == null || container.slotType() == null) continue;
+      for (int i = 0; i < container.getSize(); i++) {
+        ItemStack stack = container.getAccessories().getItem(i);
+        if (!stack.isEmpty()
+            && wanted.test(stack)
+            && AccessoriesAPI.canInsertIntoSlot(stack, container.createReference(i)))
+          found.add(stack);
+      }
+    }
+    return found;
   }
 
   private AccessoryBridge() {}

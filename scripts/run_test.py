@@ -10,10 +10,11 @@ import subprocess
 import time
 from pathlib import Path
 
+PROFILE = os.environ.get("SMARTREFILL_TEST_PROFILE", "full")
+if PROFILE not in ["full", "bare", "tom-only"]:
+    raise ValueError("SMARTREFILL_TEST_PROFILE must be full, bare, or tom-only")
 ROOT = Path(__file__).resolve().parents[1] / (
-    "build/isolated-bare"
-    if os.environ.get("SMARTREFILL_TEST_PROFILE") == "bare"
-    else "build/isolated"
+    "build/isolated" if PROFILE == "full" else "build/isolated-" + PROFILE
 )
 
 

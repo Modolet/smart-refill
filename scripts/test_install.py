@@ -29,7 +29,7 @@ class InstallTests(unittest.TestCase):
                 install.install(instance, True)
             self.assertFalse(old.exists())
             self.assertEqual(other.read_bytes(), b"preserve-unrelated")
-            new = instance / "mods/smartrefill-neoforge-1.21.1-0.1.1.jar"
+            new = instance / "mods/smartrefill-neoforge-1.21.1-0.1.2.jar"
             self.assertTrue(new.is_file())
             backup = next((instance / "smartrefill-backups").iterdir())
             self.assertEqual((backup / old.name).read_bytes(), b"old-jar-fixture")
@@ -61,7 +61,7 @@ class InstallTests(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()):
                 install.install(instance, True)
             backup = next((instance / "smartrefill-backups").iterdir())
-            (instance / "mods/smartrefill-neoforge-1.21.1-0.1.1.jar").write_bytes(
+            (instance / "mods/smartrefill-neoforge-1.21.1-0.1.2.jar").write_bytes(
                 b"changed"
             )
             with self.assertRaises(RuntimeError):

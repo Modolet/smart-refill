@@ -16,10 +16,12 @@
   "smartrefill.configuration.accessoryTotemRefill": "Accessories totem refill",
   "smartrefill.configuration.accessoryTotemRefill.tooltip": "Refill the original Accessories functional slot after actual totem consumption; requires a compatible totem-use mod such as Accessorify.",
   "smartrefill.configuration.wirelessRefill": "Tom wireless refill",
-  "smartrefill.configuration.wirelessRefill.tooltip": "Allow terminals in normal inventory or offhand. Ordinary terminals require line of sight; accessory-carried terminals are unsupported.",
+  "smartrefill.configuration.wirelessRefill.tooltip": "Allow Tom wireless network sources. Ordinary terminals require line of sight.",
   "smartrefill.configuration.sourcePriority": "Source priority",
-  "smartrefill.configuration.sourcePriority.tooltip": "Select the first accessible network in inventory order, offhand last. A shortage never switches networks.",
+  "smartrefill.configuration.sourcePriority.tooltip": "Select the first accessible network: inventory, offhand, then Accessories slot name/index. A shortage never switches networks.",
   "smartrefill.configuration.sourcePriority.inventory_first": "Inventory, then wireless",
   "smartrefill.configuration.sourcePriority.wireless_first": "Wireless, then inventory",
-  "smartrefill.configuration.sourcePriority.inventory_only": "Inventory only"
+  "smartrefill.configuration.sourcePriority.inventory_only": "Inventory only",
+  "smartrefill.configuration.accessoryWirelessRefill": "Accessory-carried wireless terminals",
+  "smartrefill.configuration.accessoryWirelessRefill.tooltip": "Also use valid top-level Accessories functional slots; cosmetic and nested slots are excluded. Tom access rules still apply."
 }

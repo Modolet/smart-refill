@@ -3,6 +3,40 @@
 
 Date: 2026-10-19 (Asia/Shanghai). The real instance was not modified, its saves were not opened, and the user's running game was not stopped. All runtime tests use disposable clients and new worlds created for this project, without Numen.
 
+## Release 0.1.2
+
+- Compilation, formatting, and static checks: passed in the project Nix environment.
+- Installer/rollback: all three temporary-directory fixture tests passed.
+- Package contract: passed; matching 25-entry English/Chinese resources, optional terminal tag entries, correct dependency relations, only project-owned classes/resources/license, no nested or third-party JARs.
+- Actual BMC5 integrated-server regression: **79 passed, 0 failed**, including the previous 51 checks and **28 dedicated accessory-terminal checks**.
+- Actual minimal runtime without any optional integration: **passed** (`OPTIONAL_ABSENCE PASS`), including block refill and localized client configuration.
+- Actual Tom-only runtime without Accessories/Curios/compatibility layer: **passed** (`OPTIONAL_ABSENCE PASS`). Genuine consumption calls the wireless fallback after the inventory supplies only 8 of the requested stack, safely loading TomBridge with Accessories absent. Both locales and the configuration extension also pass. All three test clients exited normally; their production JAR hashes match the release artifact.
+- Human keyboard/mouse and visual UI acceptance, dedicated multiplayer, positive beacon access, and real-save acceptance: **not performed**. Outstanding limitations below still apply.
+
+JAR: `smartrefill-neoforge-1.21.1-0.1.2.jar`.
+SHA-256: `19b145ad17ed5f9e20f018b19c6e7c2168418e2fb4def80fb1402863031afd73`.
+
+The dedicated suite uses actual valid Accessories slots and real Tom networks with the storage GUI closed. Advanced access succeeds 16 blocks from the terminal, beyond the default six-block interaction distance: native Tom extra-slot recognition is exercised. Ordinary access first fails when looking away, then succeeds with the original line-of-sight path. Extraction moves the actual warehouse quantity into the player and leaves the worn terminal's count, components, and stack identity unchanged.
+
+| Dedicated accessory-terminal coverage | Result |
+|---|---|
+| Valid functional slot, extended native range, advanced extraction and unchanged terminal | Passed |
+| Ordinary terminal requires line of sight, native access, real extraction | Passed |
+| Unbound, out of range, cross-dimension without beacon, unloaded destination | Rejected without stock loss or forced loading |
+| Cosmetic slot and invalid functional slot | Ignored |
+| Terminal removed between consumption and flush | No extraction |
+| Target changed before flush | Existing target preserved, no extraction |
+| Accessory-source switch and wireless master switch | Each prevents extraction |
+| Normal inventory and offhand terminal priorities over worn terminal | Deterministic network choice and exact source deduction |
+| Partial stock with inventory-first and wireless-first; inventory-only mode | Counts conserved and source order respected |
+| Multiple functional-slot terminals and shortage in first network | No network roaming; swapping slot indexes changes the selected network deterministically |
+| Actual extraction followed by target-change rollback | Extracted 3 returned; warehouse total restored to 7, existing dirt preserved |
+
+The multiple-terminal fixture temporarily adds one belt slot through Accessories' transient modifier API **only in the disposable test world** and removes it afterward. Production code adds no slots. The complete suite is in `AccessoryTerminalProbes.java`; the delivery bundle extracts its 28 passing checks into `accessory-terminals.log`. Baseline lifecycle, manual-input packet, ClientSort, component matching, and totem tests also passed on this same production JAR.
+
+
+The current installed Tom 2.4.2 permission path is `StorageTerminalBlockEntity.canInteractWith` → `PlayerInvUtil.findItem` → `Platform.checkExtraSlots` → the existing Curios/Accessories compatibility view. That view reads functional Accessories stacks. New source discovery itself uses AccessoriesCapability, AccessoriesContainer, SlotReference, and AccessoriesAPI.canInsertIntoSlot directly. No Curios API is called by Smart Refill and no Tom permission method is patched. Range is still determined by Tom's first matching carried terminal, not the largest available range. The binding/line-of-sight and loaded-block checks in Smart Refill remain necessary because Tom's permission method alone does not validate a particular terminal's binding.
+
 ## Release 0.1.1
 
 - Compilation, formatting, and static checks: passed in the project Nix environment.
@@ -71,7 +105,7 @@ The consecutive totem test explicitly flushes between two lethal hits. It proves
 - Full in-game `/reload` and configuration hot-reload lifecycle. No previous-tick disappearance heuristic or persisted pending queue exists, but that design fact is not runtime acceptance.
 - Remote tool/enchanted-tool replacement, all filter combinations, and network return failure combined with a full player inventory and dropped-entity fallback.
 - Exhaustive potion/enchantment/container-component combinations. Custom-name mismatch was tested and the official complete component comparison is used.
-- Accessory-carried terminals are unsupported. Occupied bowl/bottle targets and non-vanilla totems are not replaced.
+- Nested/cosmetic terminal sources remain unsupported. Occupied bowl/bottle targets and non-vanilla totems are not replaced. Functional-slot terminal support is covered separately in 0.1.2.
 
 ## Development failures and corrections
 

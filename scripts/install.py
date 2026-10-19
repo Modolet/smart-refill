@@ -58,7 +58,7 @@ def check_game_exited(instance):
 
 
 def install(instance, confirmed):
-    jar = ROOT / "build/libs/smartrefill-neoforge-1.21.1-0.1.1.jar"
+    jar = ROOT / "build/libs/smartrefill-neoforge-1.21.1-0.1.2.jar"
     expected = jar.with_suffix(".jar.sha256").read_text().split()[0]
     if sha(jar) != expected:
         raise RuntimeError("New JAR SHA-256 mismatch")

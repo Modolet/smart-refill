@@ -14,32 +14,52 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.fml.ModList;
 
 public final class TomBridge {
   public static StorageTerminalBlockEntity resolve(ServerPlayer p) {
-    // Stable inventory order, including offhand last. Do not roam networks after choosing one.
-    for (int i = 0; i < p.getInventory().getContainerSize(); i++) {
-      ItemStack carried = p.getInventory().getItem(i);
-      ServerLevel level;
-      BlockPos pos;
-      if (carried.is(Content.advWirelessTerminal.get())) {
-        var binding = carried.get(Content.boundPosComponent.get());
-        if (binding == null) continue;
-        level = p.getServer().getLevel(binding.dim());
-        pos = binding.pos();
-      } else if (carried.is(Content.wirelessTerminal.get())) {
-        var hit = p.pick(Config.get().wirelessRange, 0, true);
-        if (!(hit instanceof BlockHitResult blockHit)
-            || hit.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK) continue;
-        level = p.serverLevel();
-        pos = blockHit.getBlockPos();
-      } else continue;
-      if (level == null
-          || !level.isLoaded(pos)
-          || !level.getBlockState(pos).is(StorageTags.REMOTE_ACTIVATE)) continue;
-      if (level.getBlockEntity(pos) instanceof StorageTerminalBlockEntity terminal
-          && terminal.canInteractWith(p, false)) return terminal;
+    // Inventory first, then offhand, then Accessories slot name/index. No network roaming.
+    for (int i = 0; i < 36; i++) {
+      var terminal = resolve(p, p.getInventory().getItem(i));
+      if (terminal != null) return terminal;
     }
+    var offhand = resolve(p, p.getOffhandItem());
+    if (offhand != null) return offhand;
+    if (Settings.ACCESSORY_WIRELESS.get() && ModList.get().isLoaded("accessories")) {
+      for (ItemStack stack : AccessoryBridge.carried(p, TomBridge::isTerminal)) {
+        var terminal = resolve(p, stack);
+        if (terminal != null) return terminal;
+      }
+    }
+    return null;
+  }
+
+  private static boolean isTerminal(ItemStack stack) {
+    return stack.is(Content.advWirelessTerminal.get()) || stack.is(Content.wirelessTerminal.get());
+  }
+
+  private static StorageTerminalBlockEntity resolve(ServerPlayer p, ItemStack carried) {
+    ServerLevel level;
+    BlockPos pos;
+    if (carried.is(Content.advWirelessTerminal.get())) {
+      var binding = carried.get(Content.boundPosComponent.get());
+      if (binding == null) return null;
+      level = p.getServer().getLevel(binding.dim());
+      pos = binding.pos();
+    } else if (carried.is(Content.wirelessTerminal.get())) {
+      var hit = p.pick(Config.get().wirelessRange, 0, true);
+      if (!(hit instanceof BlockHitResult blockHit)
+          || hit.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK) return null;
+      level = p.serverLevel();
+      pos = blockHit.getBlockPos();
+    } else return null;
+    if (level == null
+        || !level.isLoaded(pos)
+        || !level.getBlockState(pos).is(StorageTags.REMOTE_ACTIVATE)) return null;
+    // Tom alone decides range, dimensions, beacon access and extra-slot recognition.
+    // In BMC5 its existing Curios/Accessories compatibility bridge recognizes worn terminals.
+    if (level.getBlockEntity(pos) instanceof StorageTerminalBlockEntity terminal
+        && terminal.canInteractWith(p, false)) return terminal;
     return null;
   }
 
