@@ -1,0 +1,8 @@
+{
+  "required": true,
+  "minVersion": "0.8.7",
+  "package": "io.github.modolet.smartrefill.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["ItemStackMixin", "TotemMixin", "ManualPacketMixin", "InventoryMixin", "ContainerMixin", "SortMixin"],
+  "injectors": {"defaultRequire": 1}
+}

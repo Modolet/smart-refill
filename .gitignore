@@ -1,0 +1,6 @@
+build/
+delivery/
+__pycache__/
+.ruff_cache/
+.direnv/
+.envrc
